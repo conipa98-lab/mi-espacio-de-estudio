@@ -1,0 +1,23 @@
+MI ESPACIO DE ESTUDIO · v0.1 (BLOQUE 1)
+
+CONTENIDO ACTUAL
+- Inicio, navegación móvil y configuración.
+- Crear, editar y eliminar unidades y clases.
+- Añadir etiquetas temáticas a cada clase; buscarlas y filtrarlas.
+- Guardado automático en IndexedDB del navegador.
+- Exportar e importar un respaldo JSON desde Configuración.
+
+PRÓXIMAS ETAPAS (TODAVÍA NO DISPONIBLES)
+- Editor enriquecido de apuntes y resúmenes por unidad.
+- Adjuntos y lector integrado de PDF e imágenes.
+- Flashcards, repetición espaciada y agenda.
+
+CÓMO PROBAR
+1. Para una prueba rápida en computador, abre index.html en el navegador. Nota: algunos navegadores restringen IndexedDB y otras características con archivos file://.
+2. Para probar como una aplicación en iPhone, publica toda esta carpeta sin modificar su estructura en un servicio de alojamiento estático con HTTPS (por ejemplo GitHub Pages o Netlify). Abre la dirección en Safari y usa Compartir > Añadir a pantalla de inicio.
+3. Los datos quedan en el navegador y dispositivo en el que utilices la aplicación. No se sincronizan entre dispositivos.
+4. Ve a Configuración y exporta periódicamente un respaldo JSON. Guardarlo en Archivos o iCloud Drive ayuda a evitar pérdidas. No borres los datos del sitio sin guardar antes un respaldo.
+5. En esta versión el JSON contiene solo unidades, clases y etiquetas. En versiones siguientes el respaldo también incluirá los materiales y apuntes.
+
+IMPORTANTE
+Instalar la PWA no crea una cuenta ni una copia en la nube. El service worker permite usar los archivos básicos de la aplicación sin conexión después de una carga correcta por HTTPS. El contenido no se transfiere automáticamente a otro dispositivo.

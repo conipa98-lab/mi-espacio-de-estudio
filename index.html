@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f6f7fb">
+<title>Mi espacio de estudio</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+<header class="topbar"><div><small id="eyebrow">MI ESPACIO DE ESTUDIO</small><h1 id="pageTitle">Inicio</h1></div><button class="iconbtn" id="settingsBtn" aria-label="Configuración">⚙</button></header>
+<main id="view" tabindex="-1"></main>
+<nav class="bottom" aria-label="Navegación principal">
+<button data-nav="home" class="active"><span>⌂</span>Inicio</button><button data-nav="classes"><span>▤</span>Clases</button><button data-nav="study"><span>◇</span>Estudiar</button><button data-nav="agenda"><span>▦</span>Agenda</button>
+</nav>
+</div>
+<dialog id="editorDialog"><form id="entityForm" method="dialog"><h2 id="formTitle">Nuevo</h2><label id="nameLabel">Nombre<input id="entityName" maxlength="140" required placeholder="Escribe un nombre" autocomplete="off"></label><div id="unitField"><label>Unidad<select id="entityUnit"></select></label></div><div id="dateField"><label>Fecha de la clase (opcional)<input type="date" id="entityDate"></label></div><div id="tagsField"><label>Etiquetas temáticas (separadas por comas)<input id="entityTags" placeholder="Ej.: metabolismo, bioquímica"></label><p class="hint">Puedes reutilizar etiquetas de otras clases.</p></div><div class="actions"><button type="button" class="btn secondary" id="cancelForm">Cancelar</button><button type="submit" class="btn">Guardar</button></div></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js" defer></script>
+</body></html>
