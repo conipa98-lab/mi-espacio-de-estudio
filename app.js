@@ -52,7 +52,86 @@ function filesStore(mode){return db.transaction(FILE_STORE,mode).objectStore(FIL
 async function listFiles(){const items=await request(filesStore('readonly').getAll());return items.filter(x=>x.classId===activeClass)}
 async function loadAttachments(){const el=$('#filePanel');if(!el)return;try{const files=await listFiles();el.innerHTML=`<h2>Materiales de clase</h2><p class="muted">PDF e imágenes disponibles dentro y fuera de la aplicación. Las presentaciones deben exportarse a PDF.</p><button class="btn" data-action="attach">+ Adjuntar archivo</button>${files.length?files.map(x=>`<div class="listitem"><div class="titleline">${esc(x.name)}</div><p class="muted">${(x.blob.size/1048576).toFixed(1)} MB</p><div class="buttonrow"><button class="btn secondary small" data-action="view-attachment" data-id="${esc(x.id)}">Ver archivo</button><button class="btn danger small" data-action="remove-attachment" data-id="${esc(x.id)}">Eliminar</button></div></div>`).join(''):'<p class="muted">Todavía no tienes archivos adjuntos.</p>'}</section>`}catch(e){el.textContent='Error al abrir archivos: '+e.message}}
 $('#attachInput').addEventListener('change',async e=>{const files=[...e.target.files];for(const file of files){if(!(['application/pdf','image/jpeg','image/png','image/webp','image/gif'].includes(file.type))){alert('Formato no admitido: '+file.name+'. Convierte presentaciones a PDF.');continue}try{await request(filesStore('readwrite').put({id:uid(),classId:activeClass,unitId:data.classes.find(c=>c.id===activeClass)?.unitId,name:file.name,type:file.type,blob:file,addedAt:new Date().toISOString()}))}catch(err){alert('No se pudo guardar '+file.name+': '+err.message)}}e.target.value='';loadAttachments()});
-async function showAttachment(id){const file=await request(filesStore('readonly').get(id));if(!file)return;const url=URL.createObjectURL(file.blob);$('#fileTitle').textContent=file.name;const body=$('#fileBody');body.replaceChildren();const isPdf=file.type==='application/pdf';const preview=isPdf?document.createElement('iframe'):document.createElement('img');preview.src=isPdf?url+'#view=FitH&zoom=page-width':url;preview.className=isPdf?'file-preview pdf-preview':'file-preview image-preview';preview.title=file.name;if(isPdf){preview.setAttribute('loading','eager');preview.setAttribute('aria-label','PDF: '+file.name)}else{preview.alt=file.name;preview.dataset.zoomImage='yes'}body.append(preview);$('#fileControls').hidden=!isPdf;$('#pdfFit').onclick=()=>{preview.src=url+'#view=FitH&zoom=page-width'};$('#pdfWhole').onclick=()=>{preview.src=url+'#view=FitV&zoom=page-fit'};$('#openFileExternal').href=url;$('#openFileExternal').target='_blank';$('#fileDialog').showModal();$('#closeFile').onclick=()=>{$('#fileDialog').close();body.replaceChildren();setTimeout(()=>URL.revokeObjectURL(url),30000)}}
+// v0.2.4: visor PDF.js, una página a la vez, sin depender del iframe nativo de Safari.
+const PDFJS_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDF_WORKER_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdfScriptPromise=null, activePdfSession=null;
+function loadPdfEngine(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(!pdfScriptPromise)pdfScriptPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src=PDFJS_URL;script.async=true;
+    script.onload=()=>window.pdfjsLib?resolve(window.pdfjsLib):reject(new Error('Biblioteca PDF no disponible'));
+    script.onerror=()=>reject(new Error('No se pudo descargar el lector PDF. Comprueba tu conexión a internet.'));
+    document.head.appendChild(script);
+  }).catch(error=>{pdfScriptPromise=null;throw error});
+  return pdfScriptPromise;
+}
+async function showAttachment(id){
+  const file=await request(filesStore('readonly').get(id));if(!file)return;
+  if(activePdfSession)activePdfSession.closed=true;
+  const url=URL.createObjectURL(file.blob),body=$('#fileBody'),isPdf=file.type==='application/pdf';
+  $('#fileTitle').textContent=file.name;body.replaceChildren();
+  $('#fileControls').hidden=true;
+  const external=$('#openFileExternal');external.href=url;external.target='_blank';
+  $('#fileDialog').showModal();
+  const session={closed:false,url,doc:null,page:1,zoom:1,rendering:false};activePdfSession=session;
+  const close=()=>{
+    session.closed=true;if(session.doc)session.doc.destroy().catch(()=>{});
+    body.replaceChildren();$('#fileDialog').close();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  };
+  $('#closeFile').onclick=close;
+  if(!isPdf){
+    const img=document.createElement('img');img.src=url;img.className='file-preview image-preview';img.alt=file.name;body.append(img);return;
+  }
+  body.innerHTML='<p class="hint pdf-loading" role="status">Preparando lector PDF…</p>';
+  try{
+    const lib=await loadPdfEngine();if(session.closed)return;
+    lib.GlobalWorkerOptions.workerSrc=PDF_WORKER_URL;
+    const buffer=await file.blob.arrayBuffer();if(session.closed)return;
+    session.doc=await lib.getDocument({data:new Uint8Array(buffer)}).promise;
+    if(session.closed)return;
+    const wrapper=document.createElement('div');wrapper.className='pdfjs-reader';
+    wrapper.innerHTML=`<div class="pdfjs-toolbar"><button class="btn secondary small" data-pdf="prev" type="button">Anterior</button><span data-pdf="counter" aria-live="polite"></span><button class="btn secondary small" data-pdf="next" type="button">Siguiente</button></div><div class="pdfjs-toolbar"><button class="btn secondary small" type="button" data-pdf="out">−</button><button class="btn secondary small" type="button" data-pdf="reset">Ajustar</button><button class="btn secondary small" type="button" data-pdf="in">+</button></div><div class="pdfjs-scroll"><canvas aria-label="Página del documento PDF"></canvas></div><p class="hint">Desliza horizontalmente si amplías la página. También puedes abrir el archivo fuera de Estudio.</p>`;
+    body.replaceChildren(wrapper);
+    const canvas=wrapper.querySelector('canvas'),scroller=wrapper.querySelector('.pdfjs-scroll');
+    let pending=false;
+    async function renderPage(){
+      if(session.closed)return;
+      if(session.rendering){pending=true;return;}
+      session.rendering=true;
+      try{
+        const page=await session.doc.getPage(session.page);if(session.closed)return;
+        const base=page.getViewport({scale:1});
+        const available=Math.max(260,scroller.clientWidth-4);
+        const scale=available/base.width*session.zoom;
+        const viewport=page.getViewport({scale});
+        const pixelRatio=Math.min(window.devicePixelRatio||1,2);
+        canvas.width=Math.round(viewport.width*pixelRatio);canvas.height=Math.round(viewport.height*pixelRatio);
+        canvas.style.width=viewport.width+'px';canvas.style.height=viewport.height+'px';
+        await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:pixelRatio===1?null:[pixelRatio,0,0,pixelRatio,0,0]}).promise;
+        if(session.closed)return;
+        wrapper.querySelector('[data-pdf="counter"]').textContent=`${session.page} / ${session.doc.numPages}`;
+        wrapper.querySelector('[data-pdf="prev"]').disabled=session.page===1;
+        wrapper.querySelector('[data-pdf="next"]').disabled=session.page===session.doc.numPages;
+        scroller.scrollLeft=0;scroller.scrollTop=0;
+      }catch(e){if(!session.closed)wrapper.insertAdjacentHTML('beforeend','<p class="hint">No se pudo representar esta página. Usa «Abrir fuera de la aplicación».</p>');}
+      finally{session.rendering=false;if(pending&&!session.closed){pending=false;renderPage()}}
+    }
+    wrapper.addEventListener('click',event=>{
+      const button=event.target.closest('[data-pdf]');if(!button)return;
+      switch(button.dataset.pdf){
+        case 'prev':session.page=Math.max(1,session.page-1);break;
+        case 'next':session.page=Math.min(session.doc.numPages,session.page+1);break;
+        case 'out':session.zoom=Math.max(0.75,+(session.zoom-0.25).toFixed(2));break;
+        case 'in':session.zoom=Math.min(3,+(session.zoom+0.25).toFixed(2));break;
+        case 'reset':session.zoom=1;break;
+      }
+      renderPage();
+    });
+    await renderPage();
+  }catch(error){if(!session.closed){body.replaceChildren();const msg=document.createElement('p');msg.className='hint';msg.textContent='No se pudo cargar el visor integrado: '+error.message+' Puedes abrir el PDF fuera de Estudio.';body.append(msg)}}
+}
 async function removeAttachment(id){if(!confirm('¿Eliminar este archivo adjunto?'))return;await request(filesStore('readwrite').delete(id));loadAttachments()}
 async function purgeAttachments(predicate){const all=await request(filesStore('readonly').getAll());for(const x of all.filter(predicate))await request(filesStore('readwrite').delete(x.id))}
 
