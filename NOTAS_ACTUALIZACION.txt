@@ -1,0 +1,1 @@
+Versión 0.2.3: Rosa pastel y selector de temas; íconos inferiores nuevos; imágenes de apuntes y adjuntos ampliables; mejor desplazamiento horizontal de tablas; controles de ajuste del PDF (dependen de compatibilidad de Safari). No modifica la estructura de IndexedDB. No incorpora flashcards. Conserva los PDF originales: los respaldos JSON no incluyen adjuntos.
