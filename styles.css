@@ -49,3 +49,6 @@ html,body{background:var(--bg);color:var(--ink)}
 
 /* v0.2.4: PDF.js ajustado a pantalla móvil */
 .pdfjs-reader{width:100%;min-width:0}.pdfjs-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0}.pdfjs-toolbar span{font-weight:700;min-width:70px;text-align:center}.pdfjs-scroll{width:100%;max-width:100%;max-height:min(65vh,740px);overflow:auto;overscroll-behavior:contain;border-radius:12px;background:#e5e5e5;-webkit-overflow-scrolling:touch}.pdfjs-scroll canvas{display:block;max-width:none;margin:0;}.pdf-loading{text-align:center;padding:30px 10px}
+
+/* v0.3 Flashcards */
+.review-question{min-height:220px;background:var(--pale);border-radius:18px;padding:26px 18px;margin:20px 0;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}.review-question h2{font-size:1.32rem;line-height:1.45}.review-wide{width:100%}.rating-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.rating-grid .btn{width:100%;min-height:54px}#cardDialog textarea{width:100%;margin-top:8px;min-height:100px}#cardDialog label{display:block;margin:12px 0}#cardDialog select{width:100%;margin-top:8px}.btn:disabled{opacity:.5;cursor:not-allowed}
