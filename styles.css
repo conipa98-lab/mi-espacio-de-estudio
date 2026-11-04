@@ -52,3 +52,6 @@ html,body{background:var(--bg);color:var(--ink)}
 
 /* v0.3 Flashcards */
 .review-question{min-height:220px;background:var(--pale);border-radius:18px;padding:26px 18px;margin:20px 0;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}.review-question h2{font-size:1.32rem;line-height:1.45}.review-wide{width:100%}.rating-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.rating-grid .btn{width:100%;min-height:54px}#cardDialog textarea{width:100%;margin-top:8px;min-height:100px}#cardDialog label{display:block;margin:12px 0}#cardDialog select{width:100%;margin-top:8px}.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* v0.3.1: programación individual de flashcards */
+.schedule-options{border:1px solid var(--border);border-radius:14px;padding:12px;margin:12px 0}.schedule-choice{display:flex!important;align-items:center;gap:9px;margin:10px 0!important}.schedule-choice input{width:auto!important;flex:none}.schedule-name{font-weight:700;overflow-wrap:anywhere}.card-next-date{font-size:.87rem}#scheduleDateArea[hidden]{display:none}#scheduleDateArea input{display:block;width:100%;margin-top:8px;min-height:48px}#scheduleDialog{max-width:min(94vw,480px)}
