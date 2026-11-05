@@ -1,1 +1,24 @@
-{"name":"Mi espacio de estudio","short_name":"Estudio","description":"Organiza una asignatura por unidades, clases y etiquetas","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#FFF6F8","theme_color":"#FFF6F8","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "name": "Mi espacio de estudio",
+  "short_name": "Estudio",
+  "description": "Organiza una asignatura por unidades, clases y etiquetas",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF6F8",
+  "theme_color": "#FFF6F8",
+  "icons": [
+    {
+      "src": "icono-estudio-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icono-estudio-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
